@@ -6,8 +6,6 @@ name: Release
 # built and attached to that release.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: write
