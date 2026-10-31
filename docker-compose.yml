@@ -1,0 +1,6 @@
+services:
+  bridge:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "21226:21226"

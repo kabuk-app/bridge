@@ -1,0 +1,32 @@
+[package]
+name = "kabuk-bridge"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Self-hostable Kabuk WebSocket to TCP byte bridge for the web app."
+repository = "https://github.com/kabuk-app/bridge"
+
+[lib]
+name = "kabuk_bridge"
+path = "src/lib.rs"
+# All tests live in tests/. Unit tests in src/ make cargo-llvm-cov report unused copies as uncovered.
+test = false
+doctest = false
+
+[[bin]]
+name = "kabuk-bridge"
+path = "src/main.rs"
+test = false
+
+[features]
+# Lets tests dial loopback. Never enabled for the shipped binary.
+test-support = []
+
+[dependencies]
+clap = { version = "4.6.7", features = ["derive"] }
+futures-util = "0.3.34"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "net", "macros", "time", "sync", "signal", "io-util"] }
+tokio-tungstenite = "0.30.0"
+
+[dev-dependencies]
+kabuk-bridge = { path = ".", features = ["test-support"] }
