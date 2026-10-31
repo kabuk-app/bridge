@@ -335,6 +335,24 @@ async fn resolve_denies_numeric_tricks_that_the_system_resolver_may_expand() {
 }
 
 #[tokio::test]
+async fn resolve_refuses_numeric_forms_without_asking_the_resolver() {
+	let p = Policy::new(&[]);
+	for h in [
+		"127.1",
+		"2130706433",
+		"0x7f.1",
+		"0x7f000001",
+		"0X7F000001",
+		"example.0xA",
+		"0177.0.0.1",
+		"0",
+		"8.8.8.8.8",
+	] {
+		assert_eq!(p.resolve(h, 22).await, Err(Denied::InvalidHost), "{h}");
+	}
+}
+
+#[tokio::test]
 async fn resolve_checks_port_and_host_before_any_lookup() {
 	let p = Policy::new(&[]);
 	assert_eq!(p.resolve("93.184.216.34", 80).await, Err(Denied::Port));

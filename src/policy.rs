@@ -97,6 +97,17 @@ pub fn is_forbidden(ip: IpAddr) -> bool {
 }
 
 /// Checks that a host string is a plausible DNS name or IP literal.
+/// A name whose last label is numeric is an IPv4 form to the system resolver, and resolvers
+/// disagree on forms like `0177.0.0.1` or `127.1`. Only strict literals are accepted, so the
+/// outcome never depends on the platform (same rule as the WHATWG URL host parser).
+fn ends_in_number(host: &str) -> bool {
+	let last = host.rsplit('.').next().unwrap_or(host).to_ascii_lowercase();
+	match last.strip_prefix("0x") {
+		Some(hex) => hex.chars().all(|c| c.is_ascii_hexdigit()),
+		None => last.chars().all(|c| c.is_ascii_digit()),
+	}
+}
+
 fn valid_host(host: &str) -> bool {
 	let host = host.strip_suffix('.').unwrap_or(host);
 	if host.is_empty() || host.len() > 253 {
@@ -184,6 +195,7 @@ impl Policy {
 		let bare = host.strip_suffix('.').unwrap_or(host);
 		let ips: Vec<IpAddr> = match bare.parse::<IpAddr>() {
 			Ok(ip) => vec![ip],
+			Err(_) if ends_in_number(bare) => return Err(Denied::InvalidHost),
 			Err(_) => match tokio::net::lookup_host((bare, port)).await {
 				Ok(found) => found.map(|a| a.ip()).collect(),
 				Err(_) => Vec::new(),
